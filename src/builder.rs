@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::generated_bindings::{__NR_io_uring_setup, io_uring_params};
+use crate::generated_bindings::{__NR_io_uring_enter, __NR_io_uring_setup, io_uring_params};
 
 struct IoUringBuilder {}
 
@@ -31,6 +31,24 @@ pub unsafe fn io_uring_setup(entries: u32, params: *mut io_uring_params) -> isiz
         asm!(
             "syscall",
             in("rax") __NR_io_uring_setup,
+            in("rdi") entries as usize,
+            in("rsi") params,
+            lateout("rax") ret,
+            lateout("rcx") _,
+            lateout("r11") _,
+        );
+    }
+
+    ret
+}
+
+pub unsafe fn io_uring_enter(ring_fd: i32, to_submit: u32, min_complete: u32, flags: u32) -> isize {
+    let ret: isize;
+
+    unsafe {
+        asm!(
+            "syscall",
+            in("rax") __NR_io_uring_enter,
             in("rdi") entries as usize,
             in("rsi") params,
             lateout("rax") ret,
